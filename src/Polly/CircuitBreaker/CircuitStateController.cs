@@ -137,9 +137,12 @@ namespace Polly.CircuitBreaker
         }
 
         private BrokenCircuitException GetBreakingException()
-            => _lastOutcome.Exception != null
-                ? new BrokenCircuitException("The circuit is now open and is not allowing calls.", _lastOutcome.Exception)
-                : new BrokenCircuitException<TResult>("The circuit is now open and is not allowing calls.", _lastOutcome.Result);
+        {
+            Exception exception = _lastOutcome?.Exception; // hold onto exception after evaluation to protect against race conditions
+            return exception != null
+                ? new BrokenCircuitException("The circuit is now open and is not allowing calls.", exception)
+                : new BrokenCircuitException<TResult>("The circuit is now open and is not allowing calls.", _lastOutcome?.Result);
+        }
 
         public void OnActionPreExecute()
         {
